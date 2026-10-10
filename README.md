@@ -121,3 +121,7 @@ X509v3 Subject Alternative Name:
 
 [TRACE] 12:31:19 | 🌍 Starting Web Server on Port 8000...
 
+
+
+## 🛡️ Security & Cryptographic Posture
+This project tracks Software & Cryptographic Bill of Materials (SBOM & CBOM) and Post-Quantum Cryptography (PQC) readiness. See the latest [Cryptographic Audit & PQC Migration Report](docs/security/CRYPTOGRAPHIC_AUDIT.md).
