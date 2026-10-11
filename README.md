@@ -124,4 +124,92 @@ X509v3 Subject Alternative Name:
 
 
 ## 🛡️ Security & Cryptographic Posture
+
 This project tracks Software & Cryptographic Bill of Materials (SBOM & CBOM) and Post-Quantum Cryptography (PQC) readiness. See the latest [Cryptographic Audit & PQC Migration Report](docs/security/CRYPTOGRAPHIC_AUDIT.md).
+
+---
+
+## Automated SBOM & CBOM Supply Chain Pipeline
+
+This repository features an automated Software and Cryptographic Bill of Materials (SBOM & CBOM) pipeline ensuring comprehensive software supply chain transparency, continuous cryptographic posture visibility, and Post-Quantum Cryptography (PQC) readiness.
+
+### CI Pipeline Overview (`.github/workflows/sbom-cbom.yml`)
+
+The continuous integration workflow triggers on push and pull request events to `main` and `master` branches, as well as version tags and manual dispatches:
+
+1. **Dual-Format SBOM Generation:** Employs Anchore / Syft to produce both CycloneDX JSON (`oss/sbom.cyclonedx.json`) and SPDX JSON (`oss/sbom.spdx.json`) dependency inventories.
+2. **CBOM Generation:** Leverages `cbomkit` to generate a CycloneDX Cryptographic Bill of Materials (`oss/cbom.json`) identifying cryptographic algorithms, key assets, and digital certificates.
+3. **Semantic AST Cryptographic Scan & Reconciliation:** Runs `scripts/scan_crypto_ast.py` to parse repository source files and scripts via Python AST, mapping cryptographic call-sites to CBOM declarations.
+4. **Automated Verification & Test Harness:** Executes `scripts/test_boms.sh` in CI to enforce schema validity, JSON formatting, and minimum component inventory thresholds.
+5. **PQC Migration Readiness Assessment:** Analyzes cryptographic assets with `scripts/analyze_cbom.py` to highlight classical/quantum-vulnerable algorithms and publish summaries directly to GitHub Actions Job Summaries.
+6. **Continuous Cryptographic Audit Documentation:** Automatically synchronizes findings into `docs/security/CRYPTOGRAPHIC_AUDIT.md`.
+7. **Artifact Archival:** Stores all generated BOM artifacts in GitHub Actions with a 90-day retention policy.
+
+### Local Development & Verification Tooling
+
+Developers and security engineers can run the entire SBOM/CBOM pipeline locally using the standalone scripts in `scripts/`:
+
+#### 1. Generating SBOM & CBOM Artifacts (`scripts/generate_boms.sh`)
+
+Generate dual-engine bills of materials for the repository directory or container images:
+
+```bash
+# Scan repository directory (outputs to oss/)
+bash scripts/generate_boms.sh -t dir .
+
+# Scan a container image
+bash scripts/generate_boms.sh -t docker spire-server-k8s:local
+
+# Custom output directory and format
+bash scripts/generate_boms.sh -t dir -o build/boms -f cyclonedx-json .
+```
+
+#### 2. Running Verification & Test Harness (`scripts/test_boms.sh`)
+
+Validate generated BOM artifacts against strict schema and integrity checks:
+
+```bash
+bash scripts/test_boms.sh oss
+```
+
+#### 3. Semantic AST Cryptographic Analysis (`scripts/scan_crypto_ast.py`)
+
+Scan repository source code AST for cryptographic primitive invocations and reconcile with an existing CBOM:
+
+```bash
+python3 scripts/scan_crypto_ast.py . \
+  --cbom oss/cbom.json \
+  --output-json oss/crypto-callsites.json
+```
+
+#### 4. PQC Readiness Analysis (`scripts/analyze_cbom.py`)
+
+Evaluate cryptographic posture and generate Markdown or JSON assessment reports:
+
+```bash
+python3 scripts/analyze_cbom.py oss/cbom.json \
+  --sbom oss/sbom.cyclonedx.json \
+  --json oss/crypto-analysis.json \
+  --markdown docs/security/CRYPTOGRAPHIC_AUDIT.md
+```
+
+#### 5. OCI Artifact Management (`scripts/attach_oci_bom.sh` & `scripts/fetch_oci_cbom.py`)
+
+Publish and fetch cryptographic bills of materials directly to/from OCI container registries:
+
+```bash
+# Attach CBOM to container image
+bash scripts/attach_oci_bom.sh oss/cbom.json my-registry.io/spire-server-k8s:v1.0.0
+
+# Retrieve CBOM from container image
+python3 scripts/fetch_oci_cbom.py my-registry.io/spire-server-k8s:v1.0.0 --output-dir oss
+```
+
+---
+
+## Architectural Decision Records (ADRs)
+
+Key architectural decisions governing this repository's security, supply chain, and cryptography strategy are documented under [`docs/adr/`](docs/adr/):
+
+- [**ADR-0001: Automated SBOM and CBOM Supply Chain Governance**](docs/adr/0001-automated-sbom-cbom-supply-chain-governance.md) - Context, alternatives considered, decision rationale, and downstream consequences for adopting automated dual-engine SBOM/CBOM scanning, AST call-site analysis, and CI gate verification.
+
