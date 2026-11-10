@@ -15,9 +15,8 @@
 
 | Evaluation Layer | Coverage / Status | Audit Confidence Assessment |
 |---|---|---|
-| **First-Party Code (`src/`)** | **100% Audited** (0 Custom Primitives) | 🟢 **HIGH** (Direct AST & SAST verified clean) |
-| **Third-Party Supply Chain** | **0.0%** (0 of 8 dependencies cataloged) | 🔴 LOW (Known profiles assimilated) |
-| **Overall Audit Confidence Score** | **11.1%** | 🔴 LOW (8 unassimilated supply chain dependencies) |
+| **First-Party Code (`src/`, `scripts/`)** | **100% Audited** (0 Custom Primitives) | 🟢 **HIGH** (Direct AST & SAST verified) |
+| **Third-Party Supply Chain** | **No external dependencies in SBOM** | 🟢 **HIGH** (Self-contained scope) |
 
 | **System OS Inventory** | **Pending Update** | 🟡 **Warning** (Local OS crypto components not yet inventoried) |
 
@@ -32,18 +31,3 @@
 ### 🔒 Classical Symmetric & Digest Assets
 
 > ℹ️ **No classical symmetric assets detected.**
-
-### ⚠️ Unassimilated Third-Party Binaries & Cryptographic Blind Spots
-
-> ℹ️ *The following third-party dependencies do not have verified upstream CBOM attestations in the catalog. They lower the audit confidence score until explicit CBOMs or attestations are published.* 
-
-| Dependency Name | Version | Package URL (purl) | Status |
-|---|---|---|---|
-| `actions/checkout` | v7 | `pkg:github/actions/checkout@v7` | 🟡 Unassimilated (No upstream CBOM) |
-| `actions/checkout` | v7.0.1 | `pkg:github/actions/checkout@v7.0.1` | 🟡 Unassimilated (No upstream CBOM) |
-| `actions/setup-python` | v7.1.0 | `pkg:github/actions/setup-python@v7.1.0` | 🟡 Unassimilated (No upstream CBOM) |
-| `actions/upload-artifact` | v7.0.2 | `pkg:github/actions/upload-artifact@v7.0.2` | 🟡 Unassimilated (No upstream CBOM) |
-| `anchore/sbom-action` | v0.24.2 | `pkg:github/anchore/sbom-action@v0.24.2` | 🟡 Unassimilated (No upstream CBOM) |
-| `cbomkit/cbomkit-action` | v2.3.0 | `pkg:github/cbomkit/cbomkit-action@v2.3.0` | 🟡 Unassimilated (No upstream CBOM) |
-| `/home/runner/work/spire-server-k8s/spire-server-k8s/.github/workflows/blank.yml` | N/A | `N/A` | 🟡 Unassimilated (No upstream CBOM) |
-| `/home/runner/work/spire-server-k8s/spire-server-k8s/.github/workflows/sbom-cbom.yml` | N/A | `N/A` | 🟡 Unassimilated (No upstream CBOM) |
