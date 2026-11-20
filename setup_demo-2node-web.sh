@@ -5,7 +5,7 @@ set -euo pipefail
 TRUST_DOMAIN="example.org"
 RESET_FLAG=""
 NEWROOT_FLAG=""
-PROJECT_DIR="spire_k8s_demo_v3.3"
+PROJECT_DIR="spire_k8s_demo_v4.0"
 
 # --- Argument Parsing ---
 while [[ $# -gt 0 ]]; do
@@ -37,7 +37,7 @@ cd "${PROJECT_DIR}"
 echo "🔧 Configuration:"
 echo "   - Trust Domain: ${TRUST_DOMAIN}"
 echo "   - Architecture: 2-Node (Control Plane + Worker)"
-echo "   - Version:      v3.3 (Write-to-Disk Fix)"
+echo "   - Version:      v4.0.0 (2-Node RBAC + Traced Workload)"
 echo "   - Capability:   Deep Tracing Enabled"
 
 # --- 1. Create 3.0-orchestrate.sh ---
@@ -59,7 +59,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-echo "🚀 Starting 2-Node SPIRE Kubernetes Demo (v3.3)..."
+echo "🚀 Starting 2-Node SPIRE Kubernetes Demo (v4.0.0)..."
 
 command -v kind >/dev/null 2>&1 || { echo >&2 "❌ Error: 'kind' is not installed."; exit 1; }
 command -v kubectl >/dev/null 2>&1 || { echo >&2 "❌ Error: 'kubectl' is not installed."; exit 1; }
@@ -613,7 +613,7 @@ spec:
               tar -xzf spire.tar.gz
               mkdir -p /shared/bin
               echo "⬇️ Installing..."
-              find . -name spire-agent -exec cp {{}} /shared/bin/spire-agent \;
+              find . -name spire-agent -exec cp {{}} /shared/bin/spire-agent \\;
               chmod +x /shared/bin/spire-agent
               echo "✅ Binary ready."
           volumeMounts:
@@ -664,6 +664,6 @@ if [[ "${TRUST_DOMAIN}" != "example.org" ]]; then
     find . -type f \( -name "*.sh" -o -name "*.py" \) -exec perl -pi -e "s/example.org/${TRUST_DOMAIN}/g" {} +
 fi
 
-echo "✅ Package v3.3 (Write-to-Disk Fix) created in: ${PROJECT_DIR}"
+echo "✅ Package v4.0.0 (2-Node RBAC + Traced Workload) created in: ${PROJECT_DIR}"
 echo "🚀 Running Master Orchestrator..."
 ./3.0-orchestrate.sh ${RESET_FLAG} ${NEWROOT_FLAG}

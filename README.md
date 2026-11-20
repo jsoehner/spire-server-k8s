@@ -1,131 +1,104 @@
-Clone this repo and ensure you have KinD installed.
-Run any one of three setup scripts and the necessary files are created.
+# SPIRE Server on Kubernetes (`spire-server-k8s`) — `v4.0.0`
 
+Self-extracting Kubernetes (KinD) orchestrators for deploying **SPIFFE / SPIRE** zero-trust workload identity across a 2-node cluster (Control Plane + Worker) with a two-tier OpenSSL UpstreamAuthority PKI, RBAC-enabled SPIRE Agent DaemonSet, traced X.509 SVID web workload, and automated SBOM/CBOM/PQC supply chain governance.
 
-(spire2) ➜  spire-server-k8s git:(main) ./setup_demo-2node-web.sh --trusted_domain scotiabank.local  --reset 
-📂 Creating project directory: spire_k8s_demo_v3.3...
+> **Latest Verification (`2026-11-20` · `v4.0.0`):** Verified end-to-end (shell/Python syntax, isolated generator extraction, trust-domain substitution, 22/22 Kubernetes & workflow YAML manifests, OpenSSL Root -> Intermediate PKI chain, and CBOM AST scan) by **Jeffs' Automated build and deploy agent** — see [`docs/BUILD_VERIFICATION.md`](docs/BUILD_VERIFICATION.md).
+
+![SPIRE Server on Kubernetes Architecture Overview](docs/images/spire-server-k8s-architecture.jpg)
+
+---
+
+## Quick Start
+
+### Prerequisites
+- [KinD](https://kind.sigs.k8s.io/) (`kind`)
+- `kubectl`
+- `openssl` & `python3`
+- Docker (or compatible container runtime)
+
+### Run the `v4.0.0` 2-Node + Traced Workload Demo (Recommended)
+
+```bash
+git clone https://github.com/jsoehner/spire-server-k8s.git
+cd spire-server-k8s
+./setup_demo-2node-web.sh --trusted_domain scotiabank.local --reset
+```
+
+| Flag | Description |
+| :--- | :--- |
+| `--trusted_domain <domain>` | Custom SPIFFE trust domain (default: `example.org`). Automatically substituted across server, agent, and workload manifests. |
+| `--reset` | Tears down any existing `spire-demo` KinD cluster and clears local `./pki` artifacts before provisioning. |
+| `--newroot` | Forces regeneration of the Root CA and Intermediate CA certificates (`3.1-pki.sh --force`). |
+
+### Available Demo Generators
+
+| Script | Version | Topology & Capabilities |
+| :--- | :--- | :--- |
+| [`setup_demo-2node-web.sh`](setup_demo-2node-web.sh) | **`v4.0.0`** | **Recommended.** 2-node KinD cluster, two-tier OpenSSL PKI, control-plane `spire-server`, RBAC-enabled `spire-agent` DaemonSet, and traced `spire-workload` HTTP server (`:8000`) fetching X.509 SVIDs via `-write /tmp/certs`. |
+| [`setup_demo-2node.sh`](setup_demo-2node.sh) | `v3.2` | 2-node KinD cluster (`control-plane` + `worker`) with custom `--trusted_domain` support. |
+| [`setup_demo-v3.0.sh`](setup_demo-v3.0.sh) | `v3.0` | Minimal 1-node KinD baseline (`example.org`). |
+
+---
+
+## Architecture & Logical Flow
+
+```mermaid
+flowchart LR
+  subgraph PKI["1. Two-Tier PKI Bootstrap"]
+    ROOT["Root CA (RSA-4096)"] --> INT["Intermediate CA (RSA-2048, pathlen:1)"]
+    INT --> SEC["Secret: spire-upstream-ca<br/>ConfigMap: spire-bundle"]
+  end
+
+  subgraph CP["2. Control Plane Node"]
+    SRV["StatefulSet: spire-server (:8081)<br/>UpstreamAuthority: disk · SQLite3"]
+    SEC --> SRV
+  end
+
+  subgraph WK["3. Worker Node"]
+    AGT["DaemonSet: spire-agent<br/>ClusterRole RBAC · k8s + docker Attestors"]
+    WKL["Deployment: spire-workload (:8000)<br/>Fetches X.509 SVID (-write /tmp/certs)"]
+    SRV -- "gRPC :8081 + Join Token" --> AGT
+    AGT -- "/run/spire/sockets/agent.sock" --> WKL
+  end
+```
+
+For full C4-style component details, sequence diagrams, and topology comparisons, see [`docs/architecture.md`](docs/architecture.md) and [`CHANGELOG.md`](CHANGELOG.md).
+
+<details>
+<summary>Sample Traced Execution Output (<code>./setup_demo-2node-web.sh --trusted_domain scotiabank.local --reset</code>)</summary>
+
+```text
+📂 Creating project directory: spire_k8s_demo_v4.0...
 🔧 Configuration:
    - Trust Domain: scotiabank.local
    - Architecture: 2-Node (Control Plane + Worker)
-   - Version:      v3.3 (Write-to-Disk Fix)
+   - Version:      v4.0.0 (2-Node RBAC + Traced Workload)
    - Capability:   Deep Tracing Enabled
-📝 Generating 3.0-orchestrate.sh...
-📝 Generating 3.1-pki.sh...
-📝 Generating 3.2-deploy-server.sh...
-📝 Generating 3.3-register-agent.py...
-📝 Generating 3.4-deploy-workload.py...
-🔧 Replacing 'example.org' with 'scotiabank.local' in all files...
-✅ Package v3.3 (Write-to-Disk Fix) created in: spire_k8s_demo_v3.3
-🚀 Running Master Orchestrator...
-🚀 Starting 2-Node SPIRE Kubernetes Demo (v3.3)...
-🧹 Tearing down existing cluster...
-Deleting cluster "spire-demo" ...
-Deleted nodes: ["spire-demo-worker" "spire-demo-control-plane"]
-No kind clusters found.
 📦 Creating 2-Node Kubernetes Cluster (Kind)...
-Creating cluster "spire-demo" ...
- ✓ Ensuring node image (kindest/node:v1.35.0) 🖼
- ✓ Preparing nodes 📦 📦  
- ✓ Writing configuration 📜 
- ✓ Starting control-plane 🕹️ 
- ✓ Installing CNI 🔌 
- ✓ Installing StorageClass 💾 
- ✓ Joining worker nodes 🚜 
-Set kubectl context to "kind-spire-demo"
-You can now use your cluster with:
-
-kubectl cluster-info --context kind-spire-demo
-
-Have a question, bug, or feature request? Let us know! https://kind.sigs.k8s.io/#community 🙂
 🔐 Initializing PKI...
-namespace/spire created
    [PKI] Generating Root CA...
-.....+.......+.....+.+...+..+...+............+............+.+.....+.+++++++++++++++++++++++++++++++++++++++++++++*.....+...+..+...+...+.......+.....+......+.....................+.............+...+..+...+++++++++++++++++++++++++++++++++++++++++++++*...+...+..+....+...+......+..+...............+...+..........+.....+...............+....+............+.......................+.+...............+..+.......+........+.....................................+............+...+..+.........+..........+..+.......+++++
-.......+..+...+.+...+........+...+.+...........+.......+.....+...+....+.....+................+...+.....+......+...+.+++++++++++++++++++++++++++++++++++++++++++++*...+........+...+...+.+........+......+......+.........+....+...+.........+...+...+........+....+..+......+....+.........+..............+...+...+....+..+....+............+..+...+...+++++++++++++++++++++++++++++++++++++++++++++*.....+........+...+..........+.....+.......+......+...............+.........+.....+......+....+...+........+......................+.........+...+......+.................+.........+......+...+.+......+.........+......+..+...............+......+................+...+...........+....+..+....+..............+...+...................+........+..................+...+.......+........+.+.......................+...............+.+.........+...+.....+...+....+..................+........+....+..+..........+.....+....+..+............+.....................+.+++++
------
    [PKI] Generating Intermediate CA...
-.+...+...+...+++++++++++++++++++++++++++++++++++++++*.......+.....+...+.........+++++++++++++++++++++++++++++++++++++++*.......+...+........................+...+..........+...+.........+..+.+..+............+...+.+......+.....+.+.........+...+...........+....+...+..+...+...............++++++
-........+........+++++++++++++++++++++++++++++++++++++++*.+..........+......+...+...........+......+.........+...+......+.+...+............+...+..+...............+.+.....+...+++++++++++++++++++++++++++++++++++++++*...........+...+...+.........+.+............+.....+...................+...+...............+..+......+.......+......+..+...+.+.........+...........+.+..+.+...........+.+..+...+...+.......+..+................+.....+............+.........+...+......+.+...........+...+.+......+..+.......+.....+....+......+...+..+.+........+....+...+...+...........+.+..............+.........+..........+......+...+...+...+.....+......+....+.........+...........+............+..........+...+......+........+...+...+.++++++
------
-Certificate request self-signature ok
-subject=C=US, O=SPIRE Demo, CN=SPIRE Intermediate CA
    [PKI] Syncing PKI to Kubernetes...
-secret/spire-upstream-ca created
-configmap/spire-bundle created
 ☁️  Deploying SPIRE Server...
-namespace/spire unchanged
-configmap/spire-server-conf created
-service/spire-server created
-statefulset.apps/spire-server created
-Waiting for 1 pods to be ready...
-partitioned roll out complete: 1 new pods have been updated...
-pod/spire-server-0 condition met
 🤝 Registering Agent (RBAC Enabled)...
-
-🔍 Locating SPIRE Server Pod...
-
-🏥 Waiting for SPIRE Server Health...
    ✅ Server is healthy.
-
-🎟️  Generating Join Token...
-
-💾 Creating 'spire-agent-token' Secret...
-
-🛡️  Applying RBAC for Agent...
-
-🚀 Deploying SPIRE Agent DaemonSet...
-
-⏳ Waiting for Agent to Register...
-✅ Agent Registered and Running.
+   ✅ Agent Registered and Running.
 🌐 Deploying Traced Workload...
-/Users/jsoehner/spire-server-k8s/spire_k8s_demo_v3.3/3.4-deploy-workload.py:176: SyntaxWarning: "\;" is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\;"? A raw string is also an option.
-  """
-
-🔍 Registering Workload Entry...
-Exec: kubectl -n spire get pod -l app=spire-server -o jsonpath='{.items[0].metadata.name}'
-Exec: kubectl -n spire exec spire-server-0 -- /opt/spire/bin/spire-server entry create \
-        -spiffeID spiffe://scotiabank.local/workload/web-server \
-        -parentID spiffe://scotiabank.local/agent/k8s-node \
-        -selector k8s:ns:default \
-        -selector k8s:sa:default \
-        -socketPath /tmp/spire-server/private/api.sock
    ✅ Registered: spiffe://scotiabank.local/workload/web-server
-
-📝 Creating Traced Workload Script (ConfigMap)...
-Exec: kubectl delete configmap workload-script --ignore-not-found=true
-Exec: kubectl create configmap workload-script --from-file=workload.py=internal_script.py
-Exec: rm internal_script.py
-
-🚀 Deploying Traced Workload Pod...
-Exec: kubectl apply -f workload-gen.yaml
-
-⏳ Waiting for Workload to be Ready...
-Exec: kubectl rollout status deployment/spire-workload --timeout=120s
-✅ Workload Deployed.
+   ✅ Workload Deployed.
 🎉 Demo Environment Ready!
-📊 Tailing Workload Logs for Trace Output...
-Defaulted container "web-server" out of: web-server, binary-downloader (init)
-(1/1) Installing openssl (3.5.5-r0)
-Executing busybox-1.37.0-r30.trigger
-OK: 15.7 MiB in 39 packages
 [TRACE] 12:31:19 | 🚀 Workload Started. Initializing Identity Loop...
 [TRACE] 12:31:19 | 🔌 Connecting to SPIRE Agent Socket: /run/spire/sockets/agent.sock
 [TRACE] 12:31:19 | ✅ RESPONSE RECEIVED: Identity fetched.
 [TRACE] 12:31:19 | 📄 Reading SVID from: /tmp/certs/svid.0.pem
 subject=C=US, O=SPIRE, x500UniqueIdentifier=24d6d4051a9a9ae5214b7c440172ca66
 issuer=C=US, O=SPIRE Demo
-notBefore=Feb 15 12:31:00 2026 GMT
-notAfter=Feb 15 13:31:10 2026 GMT
-X509v3 Subject Alternative Name: 
+X509v3 Subject Alternative Name:
     URI:spiffe://scotiabank.local/workload/web-server
-
 [TRACE] 12:31:19 | 🌍 Starting Web Server on Port 8000...
+```
 
-
-
-## 🛡️ Security & Cryptographic Posture
-
-This project tracks Software & Cryptographic Bill of Materials (SBOM & CBOM) and Post-Quantum Cryptography (PQC) readiness. See the latest [Cryptographic Audit & PQC Migration Report](docs/security/CRYPTOGRAPHIC_AUDIT.md).
+</details>
 
 ---
 
@@ -140,15 +113,16 @@ This repository integrates the [`jsoehner/jsi-bom-actions`](https://github.com/j
 
 ## Architectural Decision Records (ADRs)
 
-Key architectural decisions governing this repository's security, supply chain, and cryptography strategy are documented under [`docs/adr/`](docs/adr/):
+Key architectural decisions governing this repository's Kubernetes topology, zero-trust PKI, supply chain, and cryptography strategy are documented under [`docs/adr/`](docs/adr/README.md):
 
-- [**ADR-0001: Automated SBOM and CBOM Supply Chain Governance**](docs/adr/0001-automated-sbom-cbom-supply-chain-governance.md) - Context, alternatives considered, decision rationale, and downstream consequences for adopting automated dual-engine SBOM/CBOM scanning, AST call-site analysis, and CI gate verification.
+- [**ADR-0001: Automated SBOM and CBOM Supply Chain Governance**](docs/adr/0001-automated-sbom-cbom-supply-chain-governance.md) *(Partially Superseded by ADR-0003)*
+- [**ADR-0002: Multi-Node KinD SPIRE Architecture, RBAC Agent Attestation, and Traced SVID Workload**](docs/adr/0002-multi-node-kind-spire-architecture-and-traced-workload.md) *(Accepted)*
+- [**ADR-0003: Unified `jsi-bom-actions` Composite Governance & Trusted OSS Split-Horizon Registry**](docs/adr/0003-unified-jsi-bom-actions-and-trusted-oss-governance.md) *(Accepted)*
 
 ---
 
 ## ✅ Build & Functional Verification
 
+- **Version:** [`4.0.0`](VERSION) ([`CHANGELOG.md`](CHANGELOG.md))
 - **Last Verified:** `2026-11-20` by **Jeffs' Automated build and deploy agent**
 - **Report:** [`docs/BUILD_VERIFICATION.md`](docs/BUILD_VERIFICATION.md)
-
-

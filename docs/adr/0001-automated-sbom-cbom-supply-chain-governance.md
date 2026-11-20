@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | ADR ID | ADR-0001 |
-| Status | Accepted |
+| Status | Partially Superseded (by ADR-0003) |
 | Created Date | 2026-10-11 |
 | Decision Date | 2026-10-11 |
 | Effective Date | 2026-10-11 |
@@ -156,4 +156,4 @@ SPIRE serves as the foundational root of trust for Kubernetes workload identity.
 
 - **Review Schedule:** Annual or upon major SPIFFE/SPIRE or NIST PQC cryptographic guideline updates.
 - **Supersedes:** None (Initial baseline architecture record).
-- **Superseded By:** None.
+- **Superseded By:** [ADR-0003: Unified `jsi-bom-actions` Composite Governance & Trusted OSS Split-Horizon Registry](0003-unified-jsi-bom-actions-and-trusted-oss-governance.md) (supersedes inline GitHub Actions workflow steps; retains dual-engine SBOM/CBOM, AST scanning, and PQC governance requirements).
