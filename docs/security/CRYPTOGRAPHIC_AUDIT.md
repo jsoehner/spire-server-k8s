@@ -29,13 +29,13 @@
 
 | Component / Algorithm | Type / Primitive | Key Length / Curve | Recommended Target | Provenance / Context |
 |---|---|---|---|---|
-| **`RSA-2048`**<br><sub>RSA-2048</sub> | algorithm / signature | 2048 | **ML-KEM-768 / Kyber (FIPS 203)** | First-Party Code (SAST/AST)<br>`setup_demo-2node-web.sh:132`<br><sub><code>openssl req -x509 -newkey rsa:4096 -keyout "${ROOT_DIR}/root.key" -out "${ROOT_DIR}/root.crt" \</code></sub><br><br>`setup_demo-2node-web.sh:139`<br><sub><code>openssl req -newkey rsa:2048 -keyout "${INT_DIR}/intermediate.key" -out "${INT_DIR}/intermediate.csr" \</code></sub><br><br>`setup_demo-2node.sh:139`<br><sub><code>openssl req -x509 -newkey rsa:4096 -keyout "${ROOT_DIR}/root.key" -out "${ROOT_DIR}/root.crt" \</code></sub><br><br>`setup_demo-2node.sh:150`<br><sub><code>openssl req -newkey rsa:2048 -keyout "${INT_DIR}/intermediate.key" -out "${INT_DIR}/intermediate.csr" \</code></sub><br><br>`setup_demo-v3.0.sh:120`<br><sub><code>openssl req -x509 -newkey rsa:4096 -keyout "${ROOT_DIR}/root.key" -out "${ROOT_DIR}/root.crt" \</code></sub><br><br>`setup_demo-v3.0.sh:132`<br><sub><code>openssl req -newkey rsa:2048 -keyout "${INT_DIR}/intermediate.key" -out "${INT_DIR}/intermediate.csr" \</code></sub> |
+| **`RSA-2048`**<br><sub>RSA-2048</sub> | algorithm / signature | 2048 | **ML-KEM-768 / Kyber (FIPS 203)** | First-Party Code (SAST/AST)<br>`setup_demo-2node.sh:139`<br><sub><code>openssl req -x509 -newkey rsa:4096 -keyout "${ROOT_DIR}/root.key" -out "${ROOT_DIR}/root.crt" \</code></sub><br><br>`setup_demo-2node.sh:150`<br><sub><code>openssl req -newkey rsa:2048 -keyout "${INT_DIR}/intermediate.key" -out "${INT_DIR}/intermediate.csr" \</code></sub><br><br>`setup_demo-v3.0.sh:120`<br><sub><code>openssl req -x509 -newkey rsa:4096 -keyout "${ROOT_DIR}/root.key" -out "${ROOT_DIR}/root.crt" \</code></sub><br><br>`setup_demo-v3.0.sh:132`<br><sub><code>openssl req -newkey rsa:2048 -keyout "${INT_DIR}/intermediate.key" -out "${INT_DIR}/intermediate.csr" \</code></sub><br><br>`setup_demo-2node-web.sh:132`<br><sub><code>openssl req -x509 -newkey rsa:4096 -keyout "${ROOT_DIR}/root.key" -out "${ROOT_DIR}/root.crt" \</code></sub><br><br>`setup_demo-2node-web.sh:139`<br><sub><code>openssl req -newkey rsa:2048 -keyout "${INT_DIR}/intermediate.key" -out "${INT_DIR}/intermediate.csr" \</code></sub> |
 
 ### 🔒 Classical Symmetric & Digest Assets
 
 | Component Name | Primitive | Key Length | Quantum Resistance Assessment | Provenance / Location(s) |
 |---|---|---|---|---|
-| `SHA-256` | hash | 256 | Quantum-Resistant (Grover's proof) | First-Party Code (SAST/AST)<br>`setup_demo-2node-web.sh:143`<br>`setup_demo-2node.sh:155`<br>`setup_demo-v3.0.sh:139` |
+| `SHA-256` | hash | 256 | Quantum-Resistant (Grover's proof) | First-Party Code (SAST/AST)<br>`setup_demo-2node.sh:155`<br>`setup_demo-v3.0.sh:139`<br>`setup_demo-2node-web.sh:143` |
 
 ### ⚛️ Post-Quantum Cryptography (PQC) Modernization Roadmap
 
