@@ -144,3 +144,11 @@ Key architectural decisions governing this repository's security, supply chain, 
 
 - [**ADR-0001: Automated SBOM and CBOM Supply Chain Governance**](docs/adr/0001-automated-sbom-cbom-supply-chain-governance.md) - Context, alternatives considered, decision rationale, and downstream consequences for adopting automated dual-engine SBOM/CBOM scanning, AST call-site analysis, and CI gate verification.
 
+---
+
+## ✅ Build & Functional Verification
+
+- **Last Verified:** `2026-11-20` by **Jeffs' Automated build and deploy agent**
+- **Report:** [`docs/BUILD_VERIFICATION.md`](docs/BUILD_VERIFICATION.md)
+
+
